@@ -1,0 +1,12 @@
+const assert=require('node:assert/strict'), r=require('../dist/ranking.js'), data=require('../dist/places.json');
+const date=s=>new Date(s);
+const slot=(start,end)=>({start:date(start),end:date(end)});
+const mon=slot('2026-11-09T18:00Z','2026-11-09T20:00Z');
+assert.equal(r.coverage('Mo-Fr 10:00-12:00',mon),'fits');assert.equal(r.coverage('Mo-Fr 10:00-11:59',mon),'outside');
+assert.equal(r.coverage('',mon),'unknown');assert.equal(r.coverage('Mo-Fr 10:00-14:00; PH off',mon),'unknown');
+assert.equal(r.coverage('Mo 10:00-10:45,11:00-12:00',mon),'outside');
+assert.equal(r.coverage('Su 22:00-02:00',slot('2026-11-09T08:00Z','2026-11-09T09:00Z')),'fits');
+assert.equal(r.plan('2',2,date('2026-11-01T04:00Z')).start.toISOString(),'2026-11-01T18:00:00.000Z');
+assert.equal(r.plan('2',2,date('2026-03-08T04:00Z')).start.toISOString(),'2026-03-08T17:00:00.000Z');
+assert(data.places.every(p=>/^(node|way|relation)\/\d+$/.test(p.id)&&p.name&&Number.isFinite(r.meters(p))));assert.equal(new Set(data.places.map(p=>p.id)).size,data.places.length);
+console.log('Passed weekly hours, partial sessions, unknown rules, midnight, Berkeley DST and record integrity.');
